@@ -38,13 +38,15 @@ class SearchPage extends YoutubePage<_InitialData> {
   ///
   static Future<SearchPage> get(
       YoutubeHttpClient httpClient, String queryString,
-      {SearchFilter filter = const SearchFilter('')}) {
+      {SearchFilter filter = const SearchFilter(''),
+      String proxyCORSUrl = ""}) {
     var url =
-        'https://www.youtube.com/results?search_query=${Uri.encodeQueryComponent(queryString)}&sp=${filter.value}';
+        '${proxyCORSUrl}https://www.youtube.com/results?search_query=${Uri.encodeQueryComponent(queryString)}&sp=${filter.value}';
     return retry(httpClient, () async {
       var raw = await httpClient.getString(url);
       return SearchPage.parse(raw, queryString);
     });
+
     // ask for next page
   }
 
@@ -201,26 +203,26 @@ class _InitialData extends InitialData {
               .get('browseEndpoint')!
               .getT<String>('browseId')!);
     }
-    if (content['radioRenderer'] != null ||
-        content['playlistRenderer'] != null) {
-      var renderer =
-          (content.get('radioRenderer') ?? content.get('playlistRenderer'))!;
-
-      return SearchPlaylist(
-        PlaylistId(renderer.getT<String>('playlistId')!),
-        renderer.get('title')!.getT<String>('simpleText')!,
-        renderer
-                .get('videoCountText')
-                ?.getT<List<dynamic>>('runs')
-                ?.cast<Map<dynamic, dynamic>>()
-                .parseRuns()
-                .parseInt() ??
-            0,
-        (renderer.getList('thumbnails')?[0].getList('thumbnails') ?? const [])
-            .map((e) => Thumbnail(Uri.parse(e['url']), e['height'], e['width']))
-            .toList(),
-      );
-    }
+    // if (content['radioRenderer'] != null ||
+    //     content['playlistRenderer'] != null) {
+    //   var renderer =
+    //       (content.get('radioRenderer') ?? content.get('playlistRenderer'))!;
+    //
+    //   return SearchPlaylist(
+    //     PlaylistId(renderer.getT<String>('playlistId')!),
+    //     renderer.get('title')!.getT<String>('simpleText')!,
+    //     renderer
+    //             .get('videoCountText')
+    //             ?.getT<List<dynamic>>('runs')
+    //             ?.cast<Map<dynamic, dynamic>>()
+    //             .parseRuns()
+    //             .parseInt() ??
+    //         0,
+    //     (renderer.getList('thumbnails')?[0].getList('thumbnails') ?? const [])
+    //         .map((e) => Thumbnail(Uri.parse(e['url']), e['height'], e['width']))
+    //         .toList(),
+    //   );
+    // }
     if (content['channelRenderer'] != null) {
       var renderer = content.get('channelRenderer')!;
 
